@@ -1,0 +1,65 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f6fb;
+  --bg-deep: #eef0f8;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-solid: #ffffff;
+  --surface-muted: rgba(246, 247, 252, 0.9);
+  --text: #0b0f19;
+  --text-2: #46506a;
+  --text-3: #7b849b;
+  --line: rgba(11, 15, 25, 0.08);
+  --line-strong: rgba(11, 15, 25, 0.16);
+  --brand: #6d5ef8;
+  --brand-2: #22d3ee;
+  --brand-soft: rgba(109, 94, 248, 0.12);
+  --positive: #0b8f6b;
+  --positive-soft: rgba(11, 143, 107, 0.12);
+  --negative: #dd3f6b;
+  --negative-soft: rgba(221, 63, 107, 0.12);
+  --warning: #a86a10;
+  --warning-soft: rgba(245, 158, 11, 0.16);
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.12);
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 6px 18px -10px rgba(15, 23, 42, 0.22);
+  --shadow-md: 0 18px 40px -24px rgba(15, 23, 42, 0.3);
+  --shadow-lg: 0 36px 80px -40px rgba(15, 23, 42, 0.42);
+  --radius-xl: 26px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --font-sans: 'Inter', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+  --grid-gap: 20px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a0d16;
+  --bg-deep: #070a12;
+  --surface: rgba(20, 25, 38, 0.86);
+  --surface-solid: #141926;
+  --surface-muted: rgba(26, 32, 48, 0.9);
+  --text: #f2f4fa;
+  --text-2: #aab3c9;
+  --text-3: #7c869e;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --brand: #8b7dff;
+  --brand-2: #38e0f5;
+  --brand-soft: rgba(139, 125, 255, 0.18);
+  --positive: #35d6a8;
+  --positive-soft: rgba(53, 214, 168, 0.14);
+  --negative: #ff7096;
+  --negative-soft: rgba(255, 112, 150, 0.14);
+  --warning: #f5bd5c;
+  --warning-soft: rgba(245, 189, 92, 0.14);
+  --info: #7aa7ff;
+  --info-soft: rgba(122, 167, 255, 0.16);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 8px 24px -14px rgba(0, 0, 0, 0.7);
+  --shadow-md: 0 22px 50px -30px rgba(0, 0, 0, 0.8);
+  --shadow-lg: 0 40px 90px -40px rgba(0, 0, 0, 0.9);
+}

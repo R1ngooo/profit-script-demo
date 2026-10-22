@@ -1,0 +1,11 @@
+﻿node_modules/
+dist/
+dist-server/
+data/
+excel/
+build/
+release/
+*.log
+*.tsbuildinfo
+.DS_Store
+.env
