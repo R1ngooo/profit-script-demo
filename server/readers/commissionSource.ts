@@ -4,6 +4,7 @@ import { listSheets, openWorkbook, readEntryText } from './zip'
 import { loadSharedStrings } from './sharedStrings'
 import { streamSheetRows, type SheetRow } from './sheetStream'
 import { normalizePlatform, parseMoney, platformFromFileName, toText } from '../util/numbers'
+import { isIgnoredSourceName } from '../util/sourceFilter'
 
 export type CommissionMode = 'line' | 'order'
 
@@ -50,9 +51,15 @@ async function walkXlsx(dir: string): Promise<string[]> {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name)
     if (entry.isDirectory()) {
-      if (entry.name.includes('退样')) continue
+      // 退样表与「历史数据」文件夹不参与达人佣金匹配
+      if (entry.name.includes('退样') || isIgnoredSourceName(entry.name)) continue
       result.push(...(await walkXlsx(fullPath)))
-    } else if (entry.isFile() && /\.xlsx$/i.test(entry.name) && !entry.name.startsWith('~$')) {
+    } else if (
+      entry.isFile() &&
+      /\.xlsx$/i.test(entry.name) &&
+      !entry.name.startsWith('~$') &&
+      !isIgnoredSourceName(entry.name)
+    ) {
       result.push(fullPath)
     }
   }
@@ -69,7 +76,10 @@ export async function discoverCommissionFiles(excelDir: string): Promise<string[
   }
 
   const dirs = entries
-    .filter((entry) => entry.isDirectory() && COMMISSION_DIR_PATTERN.test(entry.name))
+    .filter(
+      (entry) =>
+        entry.isDirectory() && COMMISSION_DIR_PATTERN.test(entry.name) && !isIgnoredSourceName(entry.name),
+    )
     .map((entry) => path.join(excelDir, entry.name))
   const files: string[] = []
   for (const dir of dirs) files.push(...(await walkXlsx(dir)))

@@ -195,11 +195,27 @@ try {
   } else {
     fail(`毛利表缺少新增列：${headerFields.join(' | ')}`)
   }
+  const kuaishouPnl = summaryApi.platforms.find((pnl) => pnl.platform === '快手')
+  const ksCostRatio = `${((kuaishouPnl.productCost / kuaishouPnl.settledSales) * 100).toFixed(2)}%`
+  const ksRefundRatio = `${((kuaishouPnl.refundSales / (kuaishouPnl.settledSales + kuaishouPnl.refundSales)) * 100).toFixed(2)}%`
   const kuaishouRowText = await page.locator('.pnl-table tbody tr', { hasText: '快手' }).first().innerText()
-  if (kuaishouRowText.includes('33.05%') && kuaishouRowText.includes('18.23%')) {
-    pass('快手行比率正确：产品成本费比 33.05% / 退款比例 18.23%')
+  if (kuaishouRowText.includes(ksCostRatio) && kuaishouRowText.includes(ksRefundRatio)) {
+    pass(`快手行比率正确：产品成本费比 ${ksCostRatio} / 退款比例 ${ksRefundRatio}`)
   } else {
-    fail(`快手行比率异常：${kuaishouRowText.replace(/\n/g, ' | ')}`)
+    fail(`快手行比率异常（期望 ${ksCostRatio} / ${ksRefundRatio}）：${kuaishouRowText.replace(/\n/g, ' | ')}`)
+  }
+
+  // ---- 历史数据目录忽略 + 新导入数据源 ----
+  const datasetPaths = (summaryApi.dataset ?? []).map((file) => file.path ?? '')
+  if (datasetPaths.length && datasetPaths.every((filePath) => !filePath.includes('历史数据'))) {
+    pass('解析文件列表不含「历史数据」目录')
+  } else {
+    fail(`历史数据目录文件混入解析：${datasetPaths.filter((filePath) => filePath.includes('历史数据')).join(' | ')}`)
+  }
+  if ((summaryApi.warnings ?? []).some((warning) => warning.includes('已忽略「历史数据」文件夹'))) {
+    pass('面板提示已忽略「历史数据」文件夹')
+  } else {
+    fail('缺少「历史数据」忽略提示')
   }
 
   // ---- ② 毛利板块自定义字段排序 ----
@@ -409,8 +425,15 @@ try {
   pass('已截图 07-parameter-actions.png')
 
   const unitRowText = await feeRow('快手', 'packaging').innerText()
-  if (unitRowText.includes('9,458.00')) pass(`快手包装费按件合计 = 0.5 × ${kuaishouQty} 件 = ¥9,458.00`)
-  else fail(`按件合计显示异常：${unitRowText.replace(/\n/g, ' | ')}`)
+  const expectedUnitText = (0.5 * kuaishouQty).toLocaleString('zh-CN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  if (unitRowText.includes(expectedUnitText)) {
+    pass(`快手包装费按件合计 = 0.5 × ${kuaishouQty} 件 = ¥${expectedUnitText}`)
+  } else {
+    fail(`按件合计显示异常（期望 ¥${expectedUnitText}）：${unitRowText.replace(/\n/g, ' | ')}`)
+  }
 
   const expectedUnitDelta = 0.5 * kuaishouQty
   const grossUnit = await waitForGross(grossBefore - expectedUnitDelta)

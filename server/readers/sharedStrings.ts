@@ -11,10 +11,22 @@ function localName(name: string): string {
 export async function feedSaxes(stream: Readable, parser: SaxesParser): Promise<void> {
   const decoder = new StringDecoder('utf8')
   await new Promise<void>((resolve, reject) => {
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      try {
+        parser.close()
+      } catch {
+        /* 被 maxRows 提前销毁时 XML 不完整，忽略 close 校验 */
+      }
+      resolve()
+    }
     stream.on('data', (chunk: Buffer | string) => {
       try {
         parser.write(typeof chunk === 'string' ? chunk : decoder.write(chunk))
       } catch (error) {
+        settled = true
         reject(error)
         stream.destroy()
       }
@@ -23,13 +35,18 @@ export async function feedSaxes(stream: Readable, parser: SaxesParser): Promise<
       try {
         const rest = decoder.end()
         if (rest) parser.write(rest)
-        parser.close()
-        resolve()
+        finish()
       } catch (error) {
+        settled = true
         reject(error)
       }
     })
-    stream.on('error', (error) => reject(error))
+    // maxRows 调试场景会在中途 destroy 流，只触发 close 不触发 end
+    stream.on('close', finish)
+    stream.on('error', (error) => {
+      settled = true
+      reject(error)
+    })
   })
 }
 

@@ -14,6 +14,7 @@ import {
   type LeaderFeeRecord,
 } from '../readers/commissionSource'
 import { normalizePlatform, platformFromFileName } from '../util/numbers'
+import { countIgnoredExcelFiles, isIgnoredSourceName, isIgnoredSourcePath } from '../util/sourceFilter'
 import type { ConfigStore } from '../config/store'
 
 export interface CommissionDataset {
@@ -54,12 +55,14 @@ export const EMPTY_COST: CostTableData = {
 const EMPTY_AD: AdSpendData = { byPlatform: {}, byProduct: {}, rows: 0, warnings: [], sourceFile: '' }
 
 async function listXlsx(dir: string): Promise<string[]> {
+  // 「历史数据」文件夹整体忽略（兼容 -历史数据 等命名）
+  if (isIgnoredSourcePath(dir)) return []
   try {
     const entries = await readdir(dir, { withFileTypes: true })
     return entries
       .filter((entry) => entry.isFile())
       .map((entry) => entry.name)
-      .filter((name) => /\.xlsx$/i.test(name) && !name.startsWith('~$'))
+      .filter((name) => /\.xlsx$/i.test(name) && !name.startsWith('~$') && !isIgnoredSourceName(name))
       .sort((a, b) => a.localeCompare(b))
       .map((name) => path.join(dir, name))
   } catch {
@@ -139,6 +142,7 @@ export class DatasetService {
       const costFiles = await listXlsx(path.join(this.excelDir, '成本表'))
       const adFiles = await listXlsx(path.join(this.excelDir, '月消耗表'))
       const commissionFiles = await discoverCommissionFiles(this.excelDir)
+      const ignoredExcelCount = await countIgnoredExcelFiles(this.excelDir)
 
       const files: FileStat[] = []
       const warnings: string[] = []
@@ -148,6 +152,9 @@ export class DatasetService {
       if (!costFiles.length) warnings.push('未在 excel/成本表 找到成本表，产品成本将全部按 0 计')
       if (!adFiles.length) warnings.push('未在 excel/月消耗表 找到月消耗表，广告费将全部按 0 计')
       if (!commissionFiles.length) warnings.push('未找到 excel/商务订单 目录或其中没有文件，达人佣金按 0 计')
+      if (ignoredExcelCount) {
+        warnings.push(`已忽略「历史数据」文件夹中的 ${ignoredExcelCount} 个 Excel 文件（不参与毛利计算）`)
+      }
 
       const totalFiles = Math.max(1, orderFiles.length + costFiles.length + adFiles.length + commissionFiles.length)
 
