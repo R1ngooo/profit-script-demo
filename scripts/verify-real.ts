@@ -76,6 +76,7 @@ expect(
 expect('平台数', summary.platforms.length, 7, 0)
 expect('状态组合数', summary.statusPairs.length, 98, 0)
 expect('缺失成本 SKU 数', summary.missingCosts.length, 406, 0)
+expect('月消耗表文件数', dataset.files.filter((file) => file.kind === 'ad').length, 1, 0)
 
 const PLATFORM_EXPECTATIONS: Array<{
   platform: string
@@ -85,14 +86,15 @@ const PLATFORM_EXPECTATIONS: Array<{
   cost: number
   ad: number
   commission: number
+  gross: number
 }> = [
-  { platform: '快手', settled: 943031.9, refund: 341618.1, qty: 17299, cost: 241204.03, ad: 0, commission: 1091.67 },
-  { platform: '视频号', settled: 2248534.5, refund: 869954, qty: 34568, cost: 511142.68, ad: 0, commission: 200953.92 },
-  { platform: '抖音', settled: 12960094.07, refund: 5527114.48, qty: 233270, cost: 3957830.03, ad: 0, commission: 459551.83 },
-  { platform: '天猫', settled: 3081728.92, refund: 55927.69, qty: 91165, cost: 890898.67, ad: 0, commission: 0 },
-  { platform: '拼多多', settled: 2312418.72, refund: 1175307.79, qty: 41435, cost: 663872.67, ad: 0, commission: 0 },
-  { platform: '京东', settled: 182582.45, refund: 21678.68, qty: 3799, cost: 58694.6, ad: 0, commission: 0 },
-  { platform: '小红书', settled: 29920.1, refund: 7738.2, qty: 558, cost: 10345.44, ad: 0, commission: 0 },
+  { platform: '快手', settled: 943031.9, refund: 341618.1, qty: 17299, cost: 241204.03, ad: 575582.44, commission: 1091.67, gross: 125153.76 },
+  { platform: '视频号', settled: 2248534.5, refund: 869954, qty: 34568, cost: 511142.68, ad: 1231305.09, commission: 200953.92, gross: 305132.81 },
+  { platform: '抖音', settled: 12960094.07, refund: 5527114.48, qty: 233270, cost: 3957830.03, ad: 6118049.65, commission: 459551.83, gross: 2424662.56 },
+  { platform: '天猫', settled: 3081728.92, refund: 55927.69, qty: 91165, cost: 890898.67, ad: 1450889.08, commission: 0, gross: 739941.17 },
+  { platform: '拼多多', settled: 2312418.72, refund: 1175307.79, qty: 41435, cost: 663872.67, ad: 1007730.58, commission: 0, gross: 640815.47 },
+  { platform: '京东', settled: 182582.45, refund: 21678.68, qty: 3799, cost: 58694.6, ad: 84975.33, commission: 0, gross: 38912.52 },
+  { platform: '小红书', settled: 29920.1, refund: 7738.2, qty: 558, cost: 10345.44, ad: 8140.84, commission: 0, gross: 11433.82 },
 ]
 
 for (const item of PLATFORM_EXPECTATIONS) {
@@ -108,13 +110,14 @@ for (const item of PLATFORM_EXPECTATIONS) {
   expect(`${item.platform} 产品成本`, pnl.productCost, item.cost, 0.05)
   expect(`${item.platform} 广告费`, pnl.adSpend, item.ad)
   expect(`${item.platform} 达人佣金`, pnl.commission, item.commission, 0.05)
+  expect(`${item.platform} 粗算毛利`, pnl.grossProfit, item.gross, 0.1)
 }
 
 expect('合计预估结算金额', summary.totals.settledSales, 21758310.66)
 expect('合计产品成本', summary.totals.productCost, 6333988.12, 0.1)
 expect('合计达人佣金', summary.totals.commission, 661597.42, 0.05)
-expect('合计广告费', summary.totals.adSpend, 0, 0.05)
-expect('合计毛利', summary.totals.grossProfit, 14762725.12, 0.1)
+expect('合计广告费', summary.totals.adSpend, 10476673.01, 0.05)
+expect('合计毛利', summary.totals.grossProfit, 4286052.11, 0.1)
 expect('佣金记录数', summary.commission.totalRecords, 55395, 0)
 expect('佣金总额', summary.commission.totalAmount, 1252306.77, 0.05)
 expect('佣金计入毛利', summary.commission.matchedAmount, 661597.42, 0.05)
