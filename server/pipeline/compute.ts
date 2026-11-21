@@ -554,7 +554,12 @@ export function computeSummary(dataset: Dataset, config: Config): Summary {
 
   const firstOrderFile = dataset.files.find((file) => file.kind === 'order')
   const period =
-    periodFromName(firstOrderFile?.name) ?? periodFromName(dataset.files.find((file) => file.kind === 'ad')?.name)
+    dataset.files
+      .filter((file) => file.kind === 'order')
+      .map((file) => periodFromName(file.name))
+      .find((value) => value !== null) ??
+    periodFromName(firstOrderFile?.name) ??
+    periodFromName(dataset.files.find((file) => file.kind === 'ad')?.name)
 
   return {
     generatedAt: new Date().toISOString(),
