@@ -583,6 +583,40 @@ try {
   if (missingList.length >= 2) pass(`当前缺失 ${missingBefore.missingCosts.length} 个 SKU，取前两个做批量补录`)
   else fail('缺失成本样本不足，无法测试批量补录')
 
+  // ---- 缺失成本建议价 = 客单价 × 33% ----
+  const missingDesc = await page.locator('#missing-costs .subcard__desc').innerText()
+  const missingHead = await page.locator('.missing__table thead').innerText()
+  if (missingDesc.includes('客单价') && missingDesc.includes('33%') && missingHead.includes('建议成本价')) {
+    pass('缺失成本面板文案与表头已更新为「客单价 × 33%」')
+  } else {
+    fail(`缺失成本面板提示/表头未更新：desc=${missingDesc.slice(0, 80)} head=${missingHead.replace(/\n/g, ' | ')}`)
+  }
+  const suggestionItem = missingBefore.missingCosts.find((item) => item.sku && item.qty > 0 && item.sales > 0)
+  if (suggestionItem) {
+    const expectedSuggestion = Math.round((suggestionItem.sales / suggestionItem.qty) * 0.33 * 100) / 100
+    if (
+      Math.abs((suggestionItem.suggestion ?? -1) - expectedSuggestion) < 0.01 &&
+      suggestionItem.suggestionSource === '客单价 × 33%'
+    ) {
+      pass(
+        `建议价按客单价 33%：${suggestionItem.sku} 客单价 ¥${(suggestionItem.sales / suggestionItem.qty).toFixed(2)} → 建议 ¥${expectedSuggestion}`,
+      )
+    } else {
+      fail(
+        `建议价异常：${suggestionItem.sku} suggestion=${suggestionItem.suggestion} source=${suggestionItem.suggestionSource}，期望 ${expectedSuggestion}`,
+      )
+    }
+    const expectedText = new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(expectedSuggestion)
+    const suggestionRowText = await page
+      .locator('.missing__table tbody tr', { hasText: suggestionItem.sku })
+      .first()
+      .innerText()
+    if (suggestionRowText.includes(expectedText)) pass(`缺失成本表格显示建议价 ¥${expectedText}`)
+    else fail(`表格建议价未显示 ¥${expectedText}：${suggestionRowText.replace(/\n/g, ' | ')}`)
+  } else {
+    fail('未找到可用于验证建议价的缺失 SKU')
+  }
+
   const templateRes = await fetch(`${BASE}/api/costs/template.xlsx`)
   const templateBuffer = Buffer.from(await templateRes.arrayBuffer())
   const templateWb = new ExcelJS.Workbook()

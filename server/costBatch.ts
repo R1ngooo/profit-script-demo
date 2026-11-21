@@ -228,7 +228,7 @@ export async function buildCostTemplateWorkbook(
     '商品编码',
     '商品名',
     costColumnLabel,
-    '建议成本价（仅供参考）',
+    '建议成本价（客单价33%，仅供参考）',
     '平台',
     '结算件数',
     '备注',

@@ -286,6 +286,9 @@ export function buildWaterfall(pnl: PlatformPnl): PnlLine[] {
 /** 产品成本费比参考线：通常应在 30% 以上 */
 export const PRODUCT_COST_RATIO_BENCHMARK = 0.3
 
+/** 缺失成本建议价：客单价（销售金额 ÷ 结算数量）× 33% */
+export const MISSING_COST_SUGGESTION_RATE = 0.33
+
 /** 产品成本费比 = 产品成本 / 预估结算金额 */
 export function productCostRatio(pnl: Pick<PlatformPnl, 'productCost' | 'settledSales'>): number | null {
   if (!pnl.settledSales || pnl.settledSales <= 0) return null

@@ -11,9 +11,9 @@ import type {
   StatusPair,
   Summary,
 } from '../../shared/types'
-import { feeAmount, pairKey, statusPairId } from '../../shared/types'
+import { MISSING_COST_SUGGESTION_RATE, feeAmount, pairKey, statusPairId } from '../../shared/types'
 import { classifyStatus } from '../../shared/rules'
-import { median, normalizePlatform, safeDivide } from '../util/numbers'
+import { normalizePlatform, safeDivide } from '../util/numbers'
 import type { Dataset } from './dataset'
 
 export const PLATFORM_ORDER = ['快手', '视频号', '抖音', '天猫', '拼多多', '京东', '小红书']
@@ -439,20 +439,13 @@ export function computeSummary(dataset: Dataset, config: Config): Summary {
     warnings: commissionWarnings,
   }
 
-  // 缺失成本清单
+  // 缺失成本清单：建议价统一按「客单价（销售金额 ÷ 结算数量）× 33%」估算
   const missingCosts: MissingCost[] = []
   for (const missing of missingMap.values()) {
     if (missing.qty <= 0) continue
-    const namePrices = dataset.cost.namePrices[missing.productName] ?? []
-    let suggestion = median(namePrices)
-    let suggestionSource = suggestion !== null ? '成本表同名商品' : null
-    if (suggestion === null && missing.productName) {
-      const unit = dataset.cost.unitPrices[missing.productName]
-      if (unit !== undefined) {
-        suggestion = unit + (dataset.cost.additions[missing.productName] ?? 0)
-        suggestionSource = '单件页 + 新品调整'
-      }
-    }
+    const unitPrice = missing.sales / missing.qty
+    const suggestion = Math.round(unitPrice * MISSING_COST_SUGGESTION_RATE * 100) / 100
+    const suggestionSource = '客单价 × 33%'
     const override = missing.sku ? config.customCosts[missing.sku] : undefined
     missingCosts.push({
       sku: missing.sku,

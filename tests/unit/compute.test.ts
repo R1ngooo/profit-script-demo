@@ -275,11 +275,19 @@ describe('computeSummary', () => {
     expect(included.totals.adSpend).toBeCloseTo(170)
   })
 
-  it('缺失成本给出同名商品建议价', () => {
-    const dataset = datasetWith([row({ sku: 'D', productName: '大王美背', salesAmount: 10, qty: 1 })])
+  it('缺失成本建议价 = 客单价 × 33%', () => {
+    const dataset = datasetWith([
+      row({ sku: 'D', productName: '大王美背', salesAmount: 100, qty: 2 }),
+      row({ sku: 'E', productName: '另一款', salesAmount: 10, qty: 1 }),
+    ])
+    // 成本表同名商品价格不再参与建议价
     dataset.cost.namePrices['大王美背'] = [5, 5.8, 17.4]
+    dataset.cost.unitPrices['大王美背'] = 6
     const summary = computeSummary(dataset, configWith())
-    expect(summary.missingCosts[0].suggestion).toBeCloseTo(5.8)
-    expect(summary.missingCosts[0].suggestionSource).toBe('成本表同名商品')
+    const first = summary.missingCosts.find((item) => item.sku === 'D')!
+    expect(first.suggestion).toBeCloseTo(16.5)
+    expect(first.suggestionSource).toBe('客单价 × 33%')
+    const second = summary.missingCosts.find((item) => item.sku === 'E')!
+    expect(second.suggestion).toBeCloseTo(3.3)
   })
 })

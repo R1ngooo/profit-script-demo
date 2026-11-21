@@ -73,7 +73,7 @@ export async function buildExportWorkbook(summary: Summary, config: Config): Pro
     { header: '平台', key: 'platforms', width: 16 },
     { header: '结算数量', key: 'qty', width: 12 },
     { header: '销售额', key: 'sales', width: 14 },
-    { header: '建议单价', key: 'suggestion', width: 12 },
+    { header: '建议成本价（客单价33%）', key: 'suggestion', width: 20 },
     { header: '人工单价', key: 'override', width: 12 },
   ]
   for (const item of summary.missingCosts) {

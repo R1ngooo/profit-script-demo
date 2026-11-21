@@ -161,8 +161,7 @@ function clearImport() {
       </div>
     </div>
     <p class="subcard__desc">
-      成本表未匹配到的 SKU 默认按 0 计成本，会高估毛利。可逐行填写单价，也可下载模板或直接拖入 Excel
-      批量补录：只需「商品编码（SKU）」与「成本价」两列，其余列（商品名/款式/平台/备注等）可忽略；导入后先按草稿实时预览，点面板右上角「提交并保存」后写入配置。
+      成本表未匹配到的 SKU 默认按 0 计成本，会高估毛利。建议价统一按<strong>客单价（销售金额 ÷ 结算数量）× 33%</strong>计算，可点「采纳」或「全部采纳建议」快速填入，也可手动修改；支持下载模板或直接拖入 Excel 批量补录（只需「商品编码（SKU）」与「成本价」两列，其余列可忽略），导入后先按草稿实时预览，点面板右上角「提交并保存」后写入配置。
     </p>
 
     <div v-if="dragging" class="missing__drop">松开鼠标，导入 .xlsx 补录表</div>
@@ -210,7 +209,7 @@ function clearImport() {
             <th>平台</th>
             <th>结算数量</th>
             <th>销售额</th>
-            <th>建议单价</th>
+            <th>建议成本价</th>
             <th>补录单价</th>
             <th>操作</th>
           </tr>
@@ -224,7 +223,7 @@ function clearImport() {
             </td>
             <td>{{ fmtInt(item.settledQty) }}</td>
             <td>{{ fmtMoney(item.sales) }}</td>
-            <td class="muted">
+            <td class="muted" :title="item.suggestionSource ?? ''">
               <span v-if="item.suggestion !== null">{{ fmtNumber(item.suggestion) }}</span>
               <span v-else>—</span>
             </td>
